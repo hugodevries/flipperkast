@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1030">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Tijmens Ruimte-Flipperkast</title>
+<style>
+  :root { --geel:#ffd400; --geel-donker:#c79a00; --paneel:#10173f; --tekst:#fff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:none; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#060a22; color:var(--tekst);
+    font-family:"Trebuchet MS",system-ui,sans-serif; overscroll-behavior:none; }
+  #spel { display:flex; height:100vh; height:100dvh; width:100vw; }
+  .zijkant { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    padding:4vh 2vw; background:linear-gradient(180deg,#0e1540,#070b26); min-width:0; }
+  #tafel { height:100%; display:block; background:#050824; }
+  .titel { font-size:clamp(20px,4.2vh,40px); font-weight:900; letter-spacing:.06em; text-align:center; color:var(--geel);
+    text-shadow:0 0 14px rgba(255,212,0,.5); line-height:1.1; }
+  .vak { background:var(--paneel); border:2px solid #2a3680; border-radius:16px; padding:1.4vh 2vw; text-align:center; width:100%; max-width:340px; }
+  .vak small { display:block; font-size:clamp(14px,2.6vh,22px); opacity:.75; letter-spacing:.1em; text-transform:uppercase; }
+  .vak b { display:block; font-size:clamp(34px,10vh,88px); line-height:1.05; color:#fff; font-variant-numeric:tabular-nums; }
+  .vak b.klein { font-size:clamp(26px,6vh,52px); color:#8ff; }
+  #ballen { font-size:clamp(26px,6vh,52px); letter-spacing:.2em; line-height:1.2; min-height:1.2em; }
+  .knop { width:min(34vh,30vw); height:min(34vh,30vw); border-radius:50%; border:0; cursor:pointer;
+    background:radial-gradient(circle at 35% 30%,#fff58a,var(--geel) 45%,var(--geel-donker));
+    box-shadow:0 1.2vh 0 #8a6a00,0 2vh 3vh rgba(0,0,0,.5),inset 0 -0.8vh 1.5vh rgba(0,0,0,.2);
+    color:#5a4300; font:900 clamp(18px,3.6vh,34px)/1 "Trebuchet MS",system-ui,sans-serif; letter-spacing:.06em;
+    transition:transform .04s, box-shadow .04s; }
+  .knop.aan { transform:translateY(1vh); box-shadow:0 .2vh 0 #8a6a00,0 .8vh 1.5vh rgba(0,0,0,.5),inset 0 -0.8vh 1.5vh rgba(0,0,0,.2); filter:brightness(1.12); }
+  #scherm { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3vh;
+    background:rgba(4,7,28,.88); text-align:center; z-index:5; }
+  #scherm.weg { display:none; }
+  #scherm h1 { margin:0; padding:0 4vw; font-size:clamp(30px,7vh,64px); line-height:1.15; color:var(--geel); text-shadow:0 0 24px rgba(255,212,0,.6); letter-spacing:.05em; }
+  #scherm p { margin:0; font-size:clamp(18px,4vh,34px); opacity:.9; max-width:80vw; }
+  #start { width:auto; height:auto; border-radius:999px; padding:2.4vh 6vh; font-size:clamp(26px,6vh,52px); }
+  #draai { display:none; position:fixed; inset:0; z-index:10; background:#060a22; align-items:center; justify-content:center;
+    text-align:center; font-size:7vw; padding:8vw; color:var(--geel); font-weight:900; }
+  @media (orientation:portrait) { #draai { display:flex; } }
+</style>
+</head>
+<body>
+<div id="spel">
+  <div class="zijkant" id="links">
+    <div class="titel">🚀 RUIMTE<br>FLIPPERKAST</div>
+    <div class="vak"><small>Punten</small><b id="punten">0</b></div>
+    <button class="knop" id="knopL" tabindex="-1">LINKS</button>
+  </div>
+  <canvas id="tafel"></canvas>
+  <div class="zijkant" id="rechts">
+    <div class="vak"><small>Ballen</small><div id="ballen">●●●</div></div>
+    <div class="vak"><small>Record</small><b class="klein" id="record">0</b></div>
+    <button class="knop" id="knopR" tabindex="-1">RECHTS</button>
+  </div>
+</div>
+
+<div id="scherm">
+  <h1 id="schermTitel">🚀 Tijmens Ruimte-Flipperkast 🪐</h1>
+  <p id="schermTekst">Druk op de gele knoppen om de flippers te bewegen. Raak de planeten, vlieg door de ruimtepoort bovenaan en over de lichtbruggen. Elke keer is 1 punt!</p>
+  <button class="knop" id="start">START</button>
+</div>
+<div id="draai">Draai je tablet om (liggend) 🔄</div>
+
+<script src="spel.js"></script>
+</body>
+</html>
