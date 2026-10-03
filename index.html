@@ -3,65 +3,71 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0b1030">
+<meta name="theme-color" content="#070726">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Tijmens Ruimte-Flipperkast</title>
 <style>
-  :root { --geel:#ffd400; --geel-donker:#c79a00; --paneel:#10173f; --tekst:#fff; }
+  :root { --geel:#ffd400; --geel-donker:#c79a00; --tekst:#fff; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:none; }
-  html,body { margin:0; height:100%; overflow:hidden; background:#060a22; color:var(--tekst);
+  html,body { margin:0; height:100%; overflow:hidden; color:var(--tekst);
+    background:radial-gradient(ellipse at 50% 30%,#1a0b48,#070726 70%);
     font-family:"Trebuchet MS",system-ui,sans-serif; overscroll-behavior:none; }
-  #spel { display:flex; height:100vh; height:100dvh; width:100vw; }
-  .zijkant { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-    padding:4vh 2vw; background:linear-gradient(180deg,#0e1540,#070b26); min-width:0; }
-  #tafel { height:100%; display:block; background:#050824; }
-  .titel { font-size:clamp(20px,4.2vh,40px); font-weight:900; letter-spacing:.06em; text-align:center; color:var(--geel);
-    text-shadow:0 0 14px rgba(255,212,0,.5); line-height:1.1; }
-  .vak { background:var(--paneel); border:2px solid #2a3680; border-radius:16px; padding:1.4vh 2vw; text-align:center; width:100%; max-width:340px; }
-  .vak small { display:block; font-size:clamp(14px,2.6vh,22px); opacity:.75; letter-spacing:.1em; text-transform:uppercase; }
-  .vak b { display:block; font-size:clamp(34px,10vh,88px); line-height:1.05; color:#fff; font-variant-numeric:tabular-nums; }
-  .vak b.klein { font-size:clamp(26px,6vh,52px); color:#8ff; }
-  #ballen { font-size:clamp(26px,6vh,52px); letter-spacing:.2em; line-height:1.2; min-height:1.2em; }
-  .knop { width:min(34vh,30vw); height:min(34vh,30vw); border-radius:50%; border:0; cursor:pointer;
+  body { display:flex; align-items:center; justify-content:center; }
+  #tafel { display:block; }
+
+  /* gele flipperknoppen */
+  .knop { position:fixed; bottom:1vh; width:min(21vw,12.5vh); height:min(21vw,12.5vh); border-radius:50%; border:0; cursor:pointer; z-index:3;
     background:radial-gradient(circle at 35% 30%,#fff58a,var(--geel) 45%,var(--geel-donker));
-    box-shadow:0 1.2vh 0 #8a6a00,0 2vh 3vh rgba(0,0,0,.5),inset 0 -0.8vh 1.5vh rgba(0,0,0,.2);
-    color:#5a4300; font:900 clamp(18px,3.6vh,34px)/1 "Trebuchet MS",system-ui,sans-serif; letter-spacing:.06em;
-    transition:transform .04s, box-shadow .04s; }
-  .knop.aan { transform:translateY(1vh); box-shadow:0 .2vh 0 #8a6a00,0 .8vh 1.5vh rgba(0,0,0,.5),inset 0 -0.8vh 1.5vh rgba(0,0,0,.2); filter:brightness(1.12); }
-  #scherm { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3vh;
-    background:rgba(4,7,28,.88); text-align:center; z-index:5; }
+    box-shadow:0 .9vh 0 #8a6a00,0 1.6vh 2.4vh rgba(0,0,0,.5),inset 0 -0.6vh 1.2vh rgba(0,0,0,.2);
+    color:#5a4300; font:900 clamp(13px,2.1vh,22px)/1 "Trebuchet MS",system-ui,sans-serif; letter-spacing:.06em; opacity:.8;
+    transition:transform .04s, box-shadow .04s, opacity .04s; }
+  #knopL { left:2.5vw; } #knopR { right:2.5vw; }
+  .knop.aan { transform:translateY(.8vh); opacity:1; filter:brightness(1.12);
+    box-shadow:0 .15vh 0 #8a6a00,0 .6vh 1.2vh rgba(0,0,0,.5),inset 0 -0.6vh 1.2vh rgba(0,0,0,.2); }
+
+  /* start- en eindscherm */
+  #scherm { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.2vh;
+    padding:3vh 6vw; background:rgba(4,4,28,.86); text-align:center; z-index:5; }
   #scherm.weg { display:none; }
-  #scherm h1 { margin:0; padding:0 4vw; font-size:clamp(30px,7vh,64px); line-height:1.15; color:var(--geel); text-shadow:0 0 24px rgba(255,212,0,.6); letter-spacing:.05em; }
-  #scherm p { margin:0; font-size:clamp(18px,4vh,34px); opacity:.9; max-width:80vw; }
-  #start { width:auto; height:auto; border-radius:999px; padding:2.4vh 6vh; font-size:clamp(26px,6vh,52px); }
-  #draai { display:none; position:fixed; inset:0; z-index:10; background:#060a22; align-items:center; justify-content:center;
-    text-align:center; font-size:7vw; padding:8vw; color:var(--geel); font-weight:900; }
-  @media (orientation:portrait) { #draai { display:flex; } }
+  #scherm h1 { margin:0; font-size:clamp(30px,5.4vh,60px); line-height:1.1; color:var(--geel); letter-spacing:.04em;
+    text-shadow:0 0 22px rgba(255,212,0,.6),0 0 3px #fff; text-wrap:balance; }
+  #schermTekst { margin:0; font-size:clamp(16px,2.5vh,26px); opacity:.92; max-width:34em; }
+  #uitleg { list-style:none; margin:0; padding:2vh 4vw; width:min(92vw,520px); display:grid; gap:1.2vh;
+    background:rgba(20,16,80,.7); border:2px solid #4a3fb0; border-radius:20px; text-align:left; font-size:clamp(16px,2.5vh,26px); }
+  #uitleg li { display:flex; align-items:center; gap:3vw; }
+  #uitleg i { flex:none; width:clamp(18px,3vh,30px); height:clamp(18px,3vh,30px); border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff,var(--c) 60%,#000); box-shadow:0 0 10px var(--c); }
+  #uitleg span { flex:1; }
+  #uitleg b { color:var(--geel); font-size:1.2em; min-width:2ch; text-align:right; }
+  #feest { margin:0; font-size:clamp(16px,2.5vh,26px); color:#ff9bf0; text-shadow:0 0 12px #ff3fd0; max-width:30em; }
+  #start { position:static; width:auto; height:auto; border-radius:999px; padding:2vh 7vh; font-size:clamp(24px,4vh,44px); opacity:1; }
+  #draai { display:none; position:fixed; inset:0; z-index:10; background:#070726; align-items:center; justify-content:center;
+    text-align:center; font-size:5vw; padding:8vw; color:var(--geel); font-weight:900; }
+  @media (orientation:landscape) and (pointer:coarse) { #draai { display:flex; } }
 </style>
 </head>
 <body>
-<div id="spel">
-  <div class="zijkant" id="links">
-    <div class="titel">🚀 RUIMTE<br>FLIPPERKAST</div>
-    <div class="vak"><small>Punten</small><b id="punten">0</b></div>
-    <button class="knop" id="knopL" tabindex="-1">LINKS</button>
-  </div>
-  <canvas id="tafel"></canvas>
-  <div class="zijkant" id="rechts">
-    <div class="vak"><small>Ballen</small><div id="ballen">●●●</div></div>
-    <div class="vak"><small>Record</small><b class="klein" id="record">0</b></div>
-    <button class="knop" id="knopR" tabindex="-1">RECHTS</button>
-  </div>
-</div>
+<canvas id="tafel"></canvas>
+<button class="knop" id="knopL" tabindex="-1">LINKS</button>
+<button class="knop" id="knopR" tabindex="-1">RECHTS</button>
 
 <div id="scherm">
   <h1 id="schermTitel">🚀 Tijmens Ruimte-Flipperkast 🪐</h1>
-  <p id="schermTekst">Druk op de gele knoppen om de flippers te bewegen. Raak de planeten, vlieg door de ruimtepoort bovenaan en over de lichtbruggen. Elke keer is 1 punt!</p>
+  <p id="schermTekst">Druk op de gele knoppen en haal zoveel mogelijk punten!</p>
+  <ul id="uitleg">
+    <li><i style="--c:#ff5ad1"></i><span>Discoplaneet raken</span><b>2</b></li>
+    <li><i style="--c:#8fe3ff"></i><span>Maantje raken</span><b>5</b></li>
+    <li><i style="--c:#ffffff"></i><span>Discobal pakken</span><b>5</b></li>
+    <li><i style="--c:#b86bff"></i><span>Door de ruimtepoort</span><b>5</b></li>
+    <li><i style="--c:#5dffe0"></i><span>Over een lichtbrug</span><b>3</b></li>
+    <li><i style="--c:#ff5a3c"></i><span>De raket bovenin raken</span><b>25</b></li>
+  </ul>
+  <p id="feest">Raak alle 3 de planeten voor een DISCOFEEST: dubbele punten!</p>
   <button class="knop" id="start">START</button>
 </div>
-<div id="draai">Draai je tablet om (liggend) 🔄</div>
+<div id="draai">Draai je tablet staand 🔄</div>
 
 <script src="spel.js"></script>
 </body>
