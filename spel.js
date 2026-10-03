@@ -69,6 +69,13 @@ const raket = {
   caps: [[249, 124, 249, 124, 15], [249, 158, 249, 192, 24], [222, 200, 203, 234, 5], [276, 200, 295, 234, 5]]
 };
 
+// Astronaut: heel klein en zweeft rond. Eén keer raken = eindscore x2
+const astro = { r: 9, geraakt: false, tijd: -9, flits: 0, x: 249, y: 255 };
+function zetAstro() {
+  astro.x = 249 + 175 * Math.sin(spel.v * 0.45);
+  astro.y = 255 + 70 * Math.sin(spel.v * 0.7 + 1);
+}
+
 // Flippers
 const flippers = [
   { px: 150, py: 860, L: 84, dir: 1,  rest: 0.5, up: -0.5, a: 0.5, druk: false, tv: [0, 0] },
@@ -107,7 +114,7 @@ function lanceer() {
 }
 
 function nieuwSpel() {
-  spel.punten = 0; spel.ballen = START_BALLEN; spel.staat = 'speel'; spel.wacht = 0.6; spel.feest = 0;
+  spel.punten = 0; spel.ballen = START_BALLEN; spel.staat = 'speel'; spel.wacht = 0.6; spel.feest = 0; astro.geraakt = false;
   planeten.forEach(p => p.lit = false);
   bal.actief = false;
   $('scherm').classList.add('weg');
@@ -121,9 +128,17 @@ function verloren() {
   if (spel.ballen > 0) { spel.wacht = 1.0; }
   else {
     spel.staat = 'einde';
+    const basis = spel.punten;
+    if (astro.geraakt) {
+      spel.punten = basis * 2;
+      if (spel.punten > spel.record) {
+        spel.record = spel.punten;
+        try { localStorage.setItem('flipperRecord2', spel.record); } catch (e) {}
+      }
+    }
     $('schermTitel').textContent = 'Klaar! 🌟';
-    $('schermTekst').textContent = 'Je hebt ' + spel.punten + ' punten' +
-      (spel.punten >= spel.record && spel.punten > 0 ? ' - nieuw record!' : '. Record: ' + spel.record + '.');
+    $('schermTekst').textContent = (astro.geraakt ? 'Je had ' + basis + ' punten. Astronaut-bonus x2: ' + spel.punten + ' punten!' : 'Je hebt ' + spel.punten + ' punten.') +
+      (spel.punten >= spel.record && spel.punten > 0 ? ' Nieuw record!' : ' Record: ' + spel.record + '.');
     $('uitleg').style.display = 'none'; $('feest').style.display = 'none';
     $('start').textContent = 'OPNIEUW';
     setTimeout(() => $('scherm').classList.remove('weg'), 700);
@@ -276,6 +291,20 @@ function stap(h) {
     }
   }
 
+  // Astronaut
+  if (Math.hypot(bal.x - astro.x, bal.y - astro.y) < R + astro.r && spel.t - astro.tijd > 0.8) {
+    astro.tijd = spel.t; astro.flits = 1;
+    vonken(astro.x, astro.y, 30, 50, 300, true);
+    if (!astro.geraakt) {
+      astro.geraakt = true;
+      popups.push({ x: astro.x, y: astro.y - 24, t: 0, txt: 'EINDSCORE x2!', groot: 1, kleur: 50 });
+      fanfare();
+    } else {
+      popups.push({ x: astro.x, y: astro.y - 24, t: 0, txt: 'x2 staat al!', groot: 0, kleur: 50 });
+      geluid(900, 0.2, 'triangle', 0.1, 1500);
+    }
+  }
+
   // Klepje dicht zodra de bal in het veld is
   if (!klep.aan && bal.x < 470 && bal.y < 270) klep.aan = true;
 
@@ -285,7 +314,7 @@ function stap(h) {
 
 function fysica(dt) {
   const h = dt / SUB;
-  zetManen();
+  zetManen(); zetAstro();
   for (let i = 0; i < SUB; i++) { spel.t += h; stap(h); }
   if (spel.feest > 0) spel.feest = Math.max(0, spel.feest - dt);
   const v = Math.hypot(bal.vx, bal.vy);
@@ -491,6 +520,28 @@ function tekenRaket() {
   ctx.fillText('RAKET 25', 249, 262);
 }
 
+function tekenAstro() {
+  zetAstro();
+  astro.flits = Math.max(0, astro.flits - 0.03);
+  const { x, y } = astro, hoek = 0.5 * Math.sin(spel.v * 1.3), arm = Math.sin(spel.v * 3);
+  ctx.globalCompositeOperation = 'lighter';
+  lichtje(x, y, 30 + astro.flits * 24, 50, astro.geraakt ? 0.65 : 0.4);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(1.15, 1.15);
+  ctx.lineCap = 'round'; ctx.strokeStyle = '#f4f6ff'; ctx.lineWidth = 2.6;
+  ctx.beginPath(); ctx.moveTo(-3.8, -1); ctx.lineTo(-8, 1.5 + arm * 2.5); ctx.moveTo(3.8, -1); ctx.lineTo(8, 1.5 - arm * 2.5);
+  ctx.moveTo(-2, 5); ctx.lineTo(-3.5, 10.5 + arm); ctx.moveTo(2, 5); ctx.lineTo(3.5, 10.5 - arm); ctx.stroke();
+  ctx.fillStyle = '#8c93b8'; ctx.fillRect(-6.2, -3.5, 3, 9);
+  ctx.fillStyle = '#f4f6ff'; ctx.strokeStyle = '#8c93b8'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.roundRect(-4.2, -3.5, 8.4, 9.5, 2.5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ff5a3c'; ctx.fillRect(-1.6, -1.5, 3.2, 2.2);
+  ctx.fillStyle = '#f4f6ff'; cirkel(0, -6.5, 5.6); ctx.fill(); ctx.stroke();
+  const vg = ctx.createRadialGradient(-0.5, -7.5, 0.5, 0.5, -6.5, 4);
+  vg.addColorStop(0, '#fff3c0'); vg.addColorStop(0.5, '#f0b030'); vg.addColorStop(1, '#8a4a00');
+  ctx.fillStyle = vg; cirkel(0.6, -6.4, 3.6); ctx.fill();
+  ctx.restore();
+}
+
 function tekenWormgat(p, i) {
   p.flits = Math.max(0, p.flits - 0.02);
   ctx.save(); ctx.translate(p.x, p.y);
@@ -549,6 +600,11 @@ function tekenHud() {
     ctx.fillStyle = on ? '#e8f0ff' : 'rgba(150,170,220,.25)'; cirkel(x, 42, 8); ctx.fill();
     if (on) { ctx.fillStyle = '#fff'; cirkel(x - 2.5, 39.5, 2.5); ctx.fill(); }
   }
+  if (astro.geraakt) {
+    ctx.textAlign = 'right'; ctx.font = 'bold 20px "Trebuchet MS",sans-serif';
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,10,50,.9)'; ctx.strokeText('einde x2', W - 16, 102);
+    ctx.fillStyle = '#ffd95a'; ctx.fillText('einde x2', W - 16, 102);
+  }
   if (spel.feest > 0) {
     const h = (spel.v * 160) % 360;
     ctx.textAlign = 'right'; ctx.font = 'bold 22px "Trebuchet MS",sans-serif';
@@ -598,6 +654,7 @@ function teken(dt) {
   poorten.forEach(tekenWormgat);
   bruggen.forEach(tekenBrug);
   tekenRaket();
+  tekenAstro();
 
   // planeten en maantjes
   zetManen();
@@ -699,7 +756,7 @@ function teken(dt) {
     if (p.t > 1) { popups.splice(i, 1); continue; }
     const grootte = [24, 32, 48][p.groot], opacity = Math.min(1, (1 - p.t) * 2);
     ctx.font = `900 ${grootte}px "Trebuchet MS",sans-serif`;
-    const y = p.y - p.t * 40, x = Math.max(60, Math.min(W - 60, p.x));
+    const half = ctx.measureText(p.txt).width / 2 + 10, y = p.y - p.t * 40, x = Math.max(half, Math.min(W - half, p.x));
     ctx.globalAlpha = opacity; ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(20,10,60,.95)'; ctx.strokeText(p.txt, x, y);
     ctx.fillStyle = p.groot === 2 ? '#ffe45c' : `hsl(${p.kleur ?? 55},100%,${p.groot ? 78 : 85}%)`; ctx.fillText(p.txt, x, y);
   }
@@ -730,5 +787,5 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
-window.__g = { spel, bal, flippers, planeten, manen, discos, bruggen, poorten, raket, nieuwSpel, fysica, lanceer, zetManen };
+window.__g = { astro, spel, bal, flippers, planeten, manen, discos, bruggen, poorten, raket, nieuwSpel, fysica, lanceer, zetManen };
 })();
